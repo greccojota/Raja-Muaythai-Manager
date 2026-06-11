@@ -45,11 +45,14 @@ docker exec raja-backend pytest tests/ -v
 
 | Módulo | Status |
 |---|---|
-| Autenticação (JWT) | ✅ Fase 0 |
-| Alunos | 🔜 Fase 1 |
-| Planos & Matrículas | 🔜 Fase 1 |
-| Financeiro | 🔜 Fase 1 |
-| Aulas & Presença | 🔜 Fase 2 |
-| Graduação | 🔜 Fase 2 |
-| Eventos & Chaveamento | 🔜 Fase 3 |
-| Dashboard | 🔜 Fase 4 |
+| Autenticação (JWT) | ✅ Fase 0 — Completo |
+| Alunos | ✅ Fase 1 — Completo |
+| Planos | ✅ Fase 1 — Completo |
+| Matrículas | 🔄 Fase 1 — Parcial (sem update/get-by-id; frontend embutido em detalhe do aluno) |
+| Financeiro | 🔄 Fase 1 — Parcial (workflow via matrículas; sem CRUD dedicado completo) |
+| Instrutores | 🔄 Fase 2 — Parcial (model + endpoint existem; frontend pendente) |
+| Aulas | 🔄 Fase 2 — Parcial (CRUD de grupos/horários; sem delete de aulas privadas) |
+| Presença | 🔄 Fase 2 — Parcial (create/list/delete; sem update/get-by-id) |
+| Graduação | 🔄 Fase 2 — Parcial (faixas, eventos e graduações; cobertura incompleta) |
+| Dashboard | 🔄 Fase 4 — Parcial (endpoint de agregação real; frontend existe) |
+| Eventos & Chaveamento | 🔜 Fase 3 — Não iniciado |
