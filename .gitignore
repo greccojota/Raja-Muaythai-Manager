@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+*.local
+.pnp
+.pnp.js
+
+# Docker
+.docker/
+
+# Claude Code
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Env — nunca versionar
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Backups
+backups/
+*.dump
+*.sql.gz
+
+# Uploads locais
+uploads/
+media/

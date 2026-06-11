@@ -1,0 +1,63 @@
+body {
+  margin: 0;
+  background: #f4f5f7;
+  color: #1a1a2e;
+  font-family: Arial, sans-serif;
+}
+
+.preview-page {
+  padding: 32px 16px;
+}
+
+.email-card {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.email-header {
+  background: #101014;
+  padding: 22px;
+  text-align: center;
+}
+
+.email-header img {
+  max-height: 88px;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.email-body {
+  padding: 28px;
+}
+
+h1 {
+  color: #c62828;
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+
+p {
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0 0 14px;
+}
+
+.meta {
+  max-width: 640px;
+  margin: 0 auto 16px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.meta strong {
+  color: #111827;
+}
+
+.signature {
+  margin-top: 28px;
+}
