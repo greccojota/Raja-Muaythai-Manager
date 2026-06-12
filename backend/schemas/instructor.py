@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Optional
 from schemas.base import BaseSchema
 
@@ -29,3 +30,4 @@ class InstructorRead(BaseSchema):
     specialization: Optional[str] = None
     bio: Optional[str] = None
     is_active: bool
+    created_at: datetime

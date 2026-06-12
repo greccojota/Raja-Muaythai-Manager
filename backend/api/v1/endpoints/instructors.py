@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.deps import get_current_user, get_session
 from models.user import User
@@ -12,10 +12,12 @@ router = APIRouter(prefix="/instructors", tags=["Professores"])
 
 @router.get("", response_model=list[InstructorRead])
 async def list_instructors(
+    active_only: bool = Query(True),
     _: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await InstructorRepository(session).list_all()
+    repo = InstructorRepository(session)
+    return await repo.list_active() if active_only else await repo.list_all()
 
 
 @router.post("", response_model=InstructorRead, status_code=status.HTTP_201_CREATED)

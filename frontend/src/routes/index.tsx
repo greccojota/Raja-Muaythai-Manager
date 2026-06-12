@@ -11,6 +11,7 @@ import { FinancialPage } from '@/pages/Financial'
 import { ClassesPage } from '@/pages/Classes'
 import { AttendancePage } from '@/pages/Attendance'
 import { GraduationPage } from '@/pages/Graduation'
+import { InstructorsPage } from '@/pages/Instructors'
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
           { path: '/financial', element: <FinancialPage /> },
           { path: '/classes', element: <ClassesPage /> },
           { path: '/attendance', element: <AttendancePage /> },
+          { path: '/instructors', element: <InstructorsPage /> },
           { path: '/graduation', element: <GraduationPage /> },
         ],
       },

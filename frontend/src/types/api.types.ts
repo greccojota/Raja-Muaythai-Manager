@@ -216,6 +216,16 @@ export interface InstructorRead {
   specialization?: string
   bio?: string
   is_active: boolean
+  created_at?: string
+}
+
+export interface InstructorCreate {
+  name: string
+  phone?: string
+  email?: string
+  specialization?: string
+  bio?: string
+  is_active?: boolean
 }
 
 export interface ClassScheduleRead {
