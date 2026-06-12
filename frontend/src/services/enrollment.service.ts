@@ -4,13 +4,37 @@ import type {
   DelinquentStudentRead,
   EnrollmentCreate,
   EnrollmentRead,
+  EnrollmentUpdate,
   PaginatedResponse,
   PaymentCreate,
 } from '@/types/api.types'
 
+interface ListEnrollmentsParams {
+  status?: string
+  student_id?: string
+  plan_id?: string
+  page?: number
+  size?: number
+}
+
 export const enrollmentService = {
+  async list(params: ListEnrollmentsParams = {}): Promise<PaginatedResponse<EnrollmentRead>> {
+    const { data } = await api.get<PaginatedResponse<EnrollmentRead>>('/enrollments', { params })
+    return data
+  },
+
+  async get(id: string): Promise<EnrollmentRead> {
+    const { data } = await api.get<EnrollmentRead>(`/enrollments/${id}`)
+    return data
+  },
+
   async enroll(payload: EnrollmentCreate): Promise<EnrollmentRead> {
     const { data } = await api.post<EnrollmentRead>('/enrollments', payload)
+    return data
+  },
+
+  async update(id: string, payload: EnrollmentUpdate): Promise<EnrollmentRead> {
+    const { data } = await api.put<EnrollmentRead>(`/enrollments/${id}`, payload)
     return data
   },
 

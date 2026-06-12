@@ -110,6 +110,7 @@ export type EnrollmentStatus = 'active' | 'cancelled' | 'expired' | 'suspended'
 export interface EnrollmentRead {
   id: string
   student_id: string
+  student_name?: string
   plan_id: string
   plan?: PlanRead
   start_date: string
@@ -125,6 +126,15 @@ export interface EnrollmentRead {
   cancelled_at?: string
   cancelled_reason?: string
   created_at: string
+}
+
+export interface EnrollmentUpdate {
+  status?: EnrollmentStatus
+  end_date?: string
+  discount_value?: number
+  discount_notes?: string
+  notes?: string
+  cancelled_reason?: string
 }
 
 export interface EnrollmentCreate {

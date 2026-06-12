@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.deps import get_current_user, get_session
 from models.financial import AccountsReceivable
 from models.user import User
-from schemas.enrollment import EnrollmentCreate, EnrollmentRead
+from schemas.base import PaginatedResponse
+from schemas.enrollment import EnrollmentCreate, EnrollmentRead, EnrollmentUpdate
 from schemas.financial import AccountsReceivableRead, DelinquentStudentRead, PaymentCreate
 from services.enrollment_service import EnrollmentService, FinancialService
 
@@ -22,6 +23,55 @@ def _ar_to_schema(r: AccountsReceivable) -> AccountsReceivableRead:
 
 
 # ── Matrículas ──────────────────────────────────────────────────
+
+@router.get("/enrollments", response_model=PaginatedResponse)
+async def list_enrollments(
+    enrollment_status: Optional[str] = Query(None, alias="status"),
+    student_id: Optional[uuid.UUID] = Query(None),
+    plan_id: Optional[uuid.UUID] = Query(None),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    enrollments, total = await EnrollmentService(session).list_all(
+        status=enrollment_status, student_id=student_id, plan_id=plan_id, page=page, size=size
+    )
+    def _to_read(e) -> dict:
+        r = EnrollmentRead.model_validate(e).model_dump()
+        r["student_name"] = e.student.name if e.student else None
+        return r
+
+    return PaginatedResponse(
+        total=total,
+        page=page,
+        size=size,
+        pages=math.ceil(total / size) if total else 1,
+        items=[_to_read(e) for e in enrollments],
+    )
+
+
+@router.get("/enrollments/{enrollment_id}", response_model=EnrollmentRead)
+async def get_enrollment(
+    enrollment_id: uuid.UUID,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    return await EnrollmentService(session).get_by_id(enrollment_id)
+
+
+@router.put("/enrollments/{enrollment_id}", response_model=EnrollmentRead)
+async def update_enrollment(
+    enrollment_id: uuid.UUID,
+    data: EnrollmentUpdate,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    if data.status and data.status not in {"active", "cancelled", "expired", "suspended"}:
+        from core.exceptions import ValidationError
+        raise ValidationError("Status invalido")
+    return await EnrollmentService(session).update(enrollment_id, data)
+
 
 @router.post("/enrollments", response_model=EnrollmentRead, status_code=status.HTTP_201_CREATED)
 async def enroll_student(

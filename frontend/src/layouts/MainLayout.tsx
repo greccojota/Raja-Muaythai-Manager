@@ -13,7 +13,7 @@ import {
   Gavel as JudgesIcon, Handshake as SponsorsIcon,
   AccountTree as BracketsIcon, Menu as MenuIcon, ChevronLeft,
   ExpandLess, ExpandMore, Logout as LogoutIcon,
-  School as InstructorsIcon,
+  School as InstructorsIcon, AssignmentInd as EnrollmentsIcon,
 } from '@mui/icons-material'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
@@ -28,7 +28,8 @@ interface NavGroup { label: string; icon: React.ReactNode; path: string; childre
 const navGroups: NavGroup[] = [
   { label: 'Dashboard',         icon: <DashboardIcon />, path: '/dashboard' },
   { label: 'Alunos',            icon: <StudentsIcon />,  path: '/students'  },
-  { label: 'Planos',            icon: <PlansIcon />,     path: '/plans'     },
+  { label: 'Planos',            icon: <PlansIcon />,        path: '/plans'       },
+  { label: 'Matrículas',        icon: <EnrollmentsIcon />,  path: '/enrollments' },
   { label: 'Financeiro',        icon: <FinancialIcon />, path: '/financial' },
   { label: 'Aulas',             icon: <ClassesIcon />,      path: '/classes'     },
   { label: 'Professores',       icon: <InstructorsIcon />,  path: '/instructors' },

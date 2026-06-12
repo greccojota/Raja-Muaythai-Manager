@@ -42,6 +42,7 @@ class EnrollmentUpdate(BaseSchema):
 class EnrollmentRead(BaseSchema):
     id: uuid.UUID
     student_id: uuid.UUID
+    student_name: Optional[str] = None
     plan_id: uuid.UUID
     plan: Optional[PlanRead] = None
     start_date: date

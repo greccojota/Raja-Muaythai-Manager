@@ -12,6 +12,7 @@ import { ClassesPage } from '@/pages/Classes'
 import { AttendancePage } from '@/pages/Attendance'
 import { GraduationPage } from '@/pages/Graduation'
 import { InstructorsPage } from '@/pages/Instructors'
+import { EnrollmentsPage } from '@/pages/Enrollments'
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
           { path: '/students', element: <StudentsPage /> },
           { path: '/students/:id', element: <StudentDetailPage /> },
           { path: '/plans', element: <PlansPage /> },
+          { path: '/enrollments', element: <EnrollmentsPage /> },
           { path: '/financial', element: <FinancialPage /> },
           { path: '/classes', element: <ClassesPage /> },
           { path: '/attendance', element: <AttendancePage /> },

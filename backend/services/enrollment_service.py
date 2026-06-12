@@ -103,6 +103,64 @@ class EnrollmentService:
             expected_payment_method=payment_method,
         )
 
+    async def get_by_id(self, enrollment_id: uuid.UUID) -> Enrollment:
+        enrollment = await self.enrollment_repo.get_with_plan(enrollment_id)
+        if not enrollment:
+            raise NotFoundError("Matricula")
+        return enrollment
+
+    async def update(self, enrollment_id: uuid.UUID, data) -> Enrollment:
+        from schemas.enrollment import EnrollmentUpdate
+        enrollment = await self.enrollment_repo.get_with_plan(enrollment_id)
+        if not enrollment:
+            raise NotFoundError("Matricula")
+        for field, value in data.model_dump(exclude_none=True).items():
+            setattr(enrollment, field, value)
+        await self.session.commit()
+        return await self.enrollment_repo.get_with_plan(enrollment_id)
+
+    async def list_all(
+        self,
+        status: str | None = None,
+        student_id: uuid.UUID | None = None,
+        plan_id: uuid.UUID | None = None,
+        page: int = 1,
+        size: int = 20,
+    ) -> tuple[list[Enrollment], int]:
+        from sqlalchemy import func
+        from sqlalchemy.orm import selectinload
+
+        conditions = []
+        if status:
+            conditions.append(Enrollment.status == status)
+        if student_id:
+            conditions.append(Enrollment.student_id == student_id)
+        if plan_id:
+            conditions.append(Enrollment.plan_id == plan_id)
+
+        base_query = select(Enrollment).where(*conditions) if conditions else select(Enrollment)
+
+        total = (
+            await self.session.execute(
+                select(func.count()).select_from(base_query.subquery())
+            )
+        ).scalar_one()
+
+        rows = (
+            await self.session.execute(
+                base_query
+                .options(
+                    selectinload(Enrollment.plan),
+                    selectinload(Enrollment.student),
+                )
+                .order_by(Enrollment.created_at.desc())
+                .offset((page - 1) * size)
+                .limit(size)
+            )
+        ).scalars().all()
+
+        return list(rows), total
+
     async def get_by_student(self, student_id: uuid.UUID) -> list[Enrollment]:
         return await self.enrollment_repo.list_by_student(student_id)
 
