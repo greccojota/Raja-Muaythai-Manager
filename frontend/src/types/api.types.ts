@@ -214,6 +214,15 @@ export interface DashboardSummary {
   }>
 }
 
+export interface ARSummary {
+  total_pending: number
+  total_overdue: number
+  total_paid_this_month: number
+  total_amount_pending: string
+  total_amount_overdue: string
+  total_amount_paid_this_month: string
+}
+
 export interface ApiError {
   detail: string
 }

@@ -51,3 +51,16 @@ class DelinquentStudentRead(BaseSchema):
     total_overdue: Decimal
     oldest_due_date: date
     overdue_count: int
+
+
+class AccountsReceivableSummary(BaseSchema):
+    total_pending: int
+    total_overdue: int
+    total_paid_this_month: int
+    total_amount_pending: Decimal
+    total_amount_overdue: Decimal
+    total_amount_paid_this_month: Decimal
+
+
+class AccountsReceivableCancel(BaseSchema):
+    reason: Optional[str] = None

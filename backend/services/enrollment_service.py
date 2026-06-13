@@ -1,14 +1,15 @@
 import uuid
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import select, update
+from sqlalchemy import case, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.exceptions import ConflictError, NotFoundError, ValidationError
 from models.enrollment import Enrollment
-from models.financial import AccountsReceivable, EmailLog
+from models.financial import AccountsReceivable, EmailLog, Payment
 from repositories.enrollment_repository import (
     AccountsReceivableRepository,
     EnrollmentRepository,
@@ -279,6 +280,132 @@ class FinancialService:
 
     async def list_ar_by_student(self, student_id: uuid.UUID) -> list[AccountsReceivable]:
         return await self.ar_repo.list_by_student(student_id)
+
+    def _not_deleted_conditions(self) -> list:
+        deleted_at = getattr(AccountsReceivable, "deleted_at", None)
+        return [deleted_at.is_(None)] if deleted_at is not None else []
+
+    async def list_ar(
+        self,
+        status: str | None = None,
+        student_id: uuid.UUID | None = None,
+        reference_month: str | None = None,
+        due_date_from: date | None = None,
+        due_date_to: date | None = None,
+        page: int = 1,
+        size: int = 20,
+    ) -> tuple[list[AccountsReceivable], int]:
+        conditions = self._not_deleted_conditions()
+        if status is not None:
+            conditions.append(AccountsReceivable.status == status)
+        if student_id is not None:
+            conditions.append(AccountsReceivable.student_id == student_id)
+        if reference_month is not None:
+            conditions.append(AccountsReceivable.reference_month == reference_month)
+        if due_date_from is not None:
+            conditions.append(AccountsReceivable.due_date >= due_date_from)
+        if due_date_to is not None:
+            conditions.append(AccountsReceivable.due_date <= due_date_to)
+
+        base_query = select(AccountsReceivable).where(*conditions)
+        total = (
+            await self.session.execute(
+                select(func.count()).select_from(base_query.subquery())
+            )
+        ).scalar_one()
+        rows = (
+            await self.session.execute(
+                base_query
+                .options(
+                    selectinload(AccountsReceivable.student),
+                    selectinload(AccountsReceivable.enrollment),
+                )
+                .order_by(AccountsReceivable.due_date.desc(), AccountsReceivable.created_at.desc())
+                .offset((page - 1) * size)
+                .limit(size)
+            )
+        ).scalars().all()
+        return list(rows), total
+
+    async def get_ar_by_id(self, ar_id: uuid.UUID) -> AccountsReceivable:
+        conditions = [AccountsReceivable.id == ar_id, *self._not_deleted_conditions()]
+        ar = (
+            await self.session.execute(
+                select(AccountsReceivable)
+                .options(
+                    selectinload(AccountsReceivable.student),
+                    selectinload(AccountsReceivable.enrollment),
+                )
+                .where(*conditions)
+            )
+        ).scalar_one_or_none()
+        if not ar:
+            raise NotFoundError("Conta a receber")
+        return ar
+
+    async def cancel_ar(self, ar_id: uuid.UUID, reason: Optional[str]) -> AccountsReceivable:
+        ar = await self.get_ar_by_id(ar_id)
+        if ar.status == "paid":
+            raise ConflictError("Cannot cancel a paid account receivable")
+        ar.status = "cancelled"
+        if hasattr(ar, "cancelled_reason"):
+            ar.cancelled_reason = reason
+        await self.session.commit()
+        await self.session.refresh(ar)
+        return await self.get_ar_by_id(ar.id)
+
+    async def get_summary(self) -> dict:
+        today = date.today()
+        month_start = date(today.year, today.month, 1)
+        next_month_start = date(today.year + (today.month // 12), (today.month % 12) + 1, 1)
+        conditions = [
+            or_(
+                AccountsReceivable.status.in_(["pending", "overdue"]),
+                (
+                    (AccountsReceivable.status == "paid")
+                    & (Payment.paid_at >= month_start)
+                    & (Payment.paid_at < next_month_start)
+                ),
+            ),
+            *self._not_deleted_conditions(),
+        ]
+        result = await self.session.execute(
+            select(
+                AccountsReceivable.status,
+                func.count(func.distinct(AccountsReceivable.id)),
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (AccountsReceivable.status == "paid", Payment.amount_paid),
+                            else_=AccountsReceivable.amount,
+                        )
+                    ),
+                    0,
+                ),
+            )
+            .outerjoin(Payment, Payment.ar_id == AccountsReceivable.id)
+            .where(*conditions)
+            .group_by(AccountsReceivable.status)
+        )
+        summary = {
+            "total_pending": 0,
+            "total_overdue": 0,
+            "total_paid_this_month": 0,
+            "total_amount_pending": Decimal("0"),
+            "total_amount_overdue": Decimal("0"),
+            "total_amount_paid_this_month": Decimal("0"),
+        }
+        for status, total, amount in result.all():
+            if status == "pending":
+                summary["total_pending"] = total
+                summary["total_amount_pending"] = amount
+            elif status == "overdue":
+                summary["total_overdue"] = total
+                summary["total_amount_overdue"] = amount
+            elif status == "paid":
+                summary["total_paid_this_month"] = total
+                summary["total_amount_paid_this_month"] = amount
+        return summary
 
     async def list_pending(self, page: int = 1, size: int = 50):
         skip = (page - 1) * size
