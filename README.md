@@ -49,7 +49,7 @@ docker exec raja-backend pytest tests/ -v
 | Alunos | Fase 1 | ✅ Completo | CRUD completo, foto, busca paginada, detalhe |
 | Planos | Fase 1 | ✅ Completo | CRUD completo, tipos e modalidades de plano |
 | Matrículas | Fase 1 | ✅ Completo | CRUD completo, listagem global, get/update por ID, student_name na resposta |
-| Financeiro | Fase 1 | 🔄 Parcial | Cobranças via matrícula, pendentes, inadimplentes, registro de pagamento; sem CRUD dedicado de AR/categorias |
+| Financeiro | Fase 1 | ✅ Completo | CRUD completo de AR (listagem paginada com filtros, detalhe, cancelamento), registro de pagamento, inadimplentes, KPIs de summary |
 | Instrutores | Fase 2 | ✅ Completo | CRUD completo, filtro active_only, página dedicada com busca e edição |
 | Aulas | Fase 2 | 🔄 Parcial | CRUD de turmas e horários, vínculo de alunos; sem tela de aulas privadas e sem delete de turma |
 | Presença | Fase 2 | 🔄 Parcial | Check-in, listagem, frequência, remoção; sem update/get-by-id e sem filtros avançados |
@@ -88,6 +88,9 @@ Raja Muaythai Manager/
 - **LGPD:** dados pessoais expostos apenas no escopo necessário; soft-delete preserva histórico
 
 ## Changelog
+
+### 2026-06-13
+- **feat(financeiro):** módulo completo — router dedicado `/financial/accounts-receivable` com filtros (status/mes/vencimento), cancelamento de AR, endpoint `/financial/summary` com KPIs; frontend reescrito com tabs de status, filtros de data, dialogo de cancelamento
 
 ### 2026-06-12
 - **feat(instrutores):** módulo completo — CRUD backend + página frontend com busca, filtro e edição
