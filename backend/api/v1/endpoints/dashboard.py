@@ -6,8 +6,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.deps import get_current_user, get_session
+from models.attendance import AttendanceRecord
+from models.classes import ClassGroup, PrivateClass
 from models.enrollment import Enrollment
 from models.financial import AccountsReceivable, Payment
+from models.graduation import Graduation, GraduationEvent
+from models.instructor import Instructor
 from models.plan import Plan
 from models.student import Student
 from models.user import User
@@ -160,6 +164,51 @@ async def dashboard_summary(
         )
     ).all()
 
+    year_start = date(today.year, 1, 1)
+    next_year_start = date(today.year + 1, 1, 1)
+
+    active_instructors = (
+        await session.execute(
+            select(func.count(Instructor.id)).where(Instructor.is_active == True)
+        )
+    ).scalar_one()
+
+    active_class_groups = (
+        await session.execute(
+            select(func.count(ClassGroup.id)).where(ClassGroup.is_active == True)
+        )
+    ).scalar_one()
+
+    attendance_this_month = (
+        await session.execute(
+            select(func.count(AttendanceRecord.id)).where(
+                AttendanceRecord.check_in_at >= month_start,
+                AttendanceRecord.check_in_at < next_month_start,
+            )
+        )
+    ).scalar_one()
+
+    private_classes_this_month = (
+        await session.execute(
+            select(func.count(PrivateClass.id)).where(
+                PrivateClass.scheduled_at >= month_start,
+                PrivateClass.scheduled_at < next_month_start,
+                PrivateClass.status != "cancelled",
+            )
+        )
+    ).scalar_one()
+
+    graduations_this_year = (
+        await session.execute(
+            select(func.count(Graduation.id))
+            .join(GraduationEvent, GraduationEvent.id == Graduation.graduation_event_id)
+            .where(
+                GraduationEvent.event_date >= year_start,
+                GraduationEvent.event_date < next_year_start,
+            )
+        )
+    ).scalar_one()
+
     return {
         "kpis": {
             "gross_revenue_month": money(gross_revenue_month),
@@ -169,6 +218,11 @@ async def dashboard_summary(
             "active_students": active_students,
             "inactive_students": inactive_students,
             "delinquent_students": delinquent_students,
+            "active_instructors": active_instructors,
+            "active_class_groups": active_class_groups,
+            "attendance_this_month": attendance_this_month,
+            "private_classes_this_month": private_classes_this_month,
+            "graduations_this_year": graduations_this_year,
         },
         "revenue_by_month": list(revenue_by_month.values()),
         "students_by_status": [{"status": status, "total": total} for status, total in status_rows],

@@ -1,23 +1,23 @@
-import { Box, Card, CardContent, Chip, CircularProgress, Grid, List, ListItem, ListItemText, Typography } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
+import {
+  Box, Card, CardContent, Chip, CircularProgress,
+  Grid, List, ListItem, ListItemText, Typography,
+} from '@mui/material'
 import {
   AttachMoney as RevenueIcon,
+  EmojiEvents as TrophyIcon,
+  EventNote as AttendanceIcon,
   Groups as StudentsIcon,
+  Person as InstructorIcon,
+  School as ClassIcon,
   TrendingUp as PendingIcon,
   Warning as DebtIcon,
 } from '@mui/icons-material'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+  Bar, BarChart, CartesianGrid, Cell,
+  Legend, Pie, PieChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { dashboardService } from '@/services/dashboard.service'
@@ -29,6 +29,7 @@ interface KpiCardProps {
   subtitle: string
   icon: React.ReactNode
   color: string
+  onClick?: () => void
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -46,9 +47,12 @@ const MODALITY_LABEL: Record<string, string> = {
 
 const COLORS = ['#C62828', '#1565C0', '#D4AF37', '#2E7D32']
 
-function KpiCard({ title, value, subtitle, icon, color }: KpiCardProps) {
+function KpiCard({ title, value, subtitle, icon, color, onClick }: KpiCardProps) {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card
+      sx={{ height: '100%', cursor: onClick ? 'pointer' : 'default', '&:hover': onClick ? { boxShadow: 4 } : {} }}
+      onClick={onClick}
+    >
       <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
           <Box sx={{ minWidth: 0 }}>
@@ -66,6 +70,8 @@ function KpiCard({ title, value, subtitle, icon, color }: KpiCardProps) {
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate()
+
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: () => dashboardService.getSummary(),
@@ -80,26 +86,104 @@ export function DashboardPage() {
     <Box>
       <PageHeader title="Dashboard" subtitle="Indicadores operacionais e financeiros da academia" />
 
-      {isLoading && <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress /></Box>}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
 
       {data && (
         <>
+          {/* ── Row 1: Alunos + Financeiro ── */}
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} lg={3}>
-              <KpiCard title="Alunos ativos" value={String(data.kpis.active_students)} subtitle={`${data.kpis.inactive_students} inativos/suspensos`} icon={<StudentsIcon />} color="#1565C0" />
+              <KpiCard
+                title="Alunos ativos"
+                value={String(data.kpis.active_students)}
+                subtitle={`${data.kpis.inactive_students} inativos/suspensos`}
+                icon={<StudentsIcon />}
+                color="#1565C0"
+                onClick={() => navigate('/students')}
+              />
             </Grid>
             <Grid item xs={12} sm={6} lg={3}>
-              <KpiCard title="Receita recebida" value={formatCurrency(+data.kpis.gross_revenue_month)} subtitle="No mes corrente" icon={<RevenueIcon />} color="#2E7D32" />
+              <KpiCard
+                title="Receita recebida"
+                value={formatCurrency(+data.kpis.gross_revenue_month)}
+                subtitle="No mes corrente"
+                icon={<RevenueIcon />}
+                color="#2E7D32"
+                onClick={() => navigate('/financial')}
+              />
             </Grid>
             <Grid item xs={12} sm={6} lg={3}>
-              <KpiCard title="A receber vencido" value={formatCurrency(+data.kpis.overdue_total)} subtitle={`${data.kpis.delinquent_students} alunos inadimplentes`} icon={<DebtIcon />} color="#C62828" />
+              <KpiCard
+                title="A receber vencido"
+                value={formatCurrency(+data.kpis.overdue_total)}
+                subtitle={`${data.kpis.delinquent_students} inadimplentes`}
+                icon={<DebtIcon />}
+                color="#C62828"
+                onClick={() => navigate('/financial')}
+              />
             </Grid>
             <Grid item xs={12} sm={6} lg={3}>
-              <KpiCard title="Pendente no mes" value={formatCurrency(+data.kpis.pending_month)} subtitle="Vencimentos ate hoje" icon={<PendingIcon />} color="#D4AF37" />
+              <KpiCard
+                title="Pendente no mes"
+                value={formatCurrency(+data.kpis.pending_month)}
+                subtitle="Vencimentos ate hoje"
+                icon={<PendingIcon />}
+                color="#D4AF37"
+                onClick={() => navigate('/financial')}
+              />
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          {/* ── Row 2: Aulas + Presença + Instrutores + Graduação ── */}
+          <Grid container spacing={2} sx={{ mt: 0 }}>
+            <Grid item xs={12} sm={6} lg={3}>
+              <KpiCard
+                title="Turmas ativas"
+                value={String(data.kpis.active_class_groups)}
+                subtitle="Turmas coletivas em andamento"
+                icon={<ClassIcon />}
+                color="#6A1B9A"
+                onClick={() => navigate('/classes')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <KpiCard
+                title="Presenças no mes"
+                value={String(data.kpis.attendance_this_month)}
+                subtitle={`+ ${data.kpis.private_classes_this_month} aulas particulares`}
+                icon={<AttendanceIcon />}
+                color="#00838F"
+                onClick={() => navigate('/attendance')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <KpiCard
+                title="Instrutores ativos"
+                value={String(data.kpis.active_instructors)}
+                subtitle="Professores cadastrados"
+                icon={<InstructorIcon />}
+                color="#E65100"
+                onClick={() => navigate('/instructors')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <KpiCard
+                title="Graduacoes no ano"
+                value={String(data.kpis.graduations_this_year)}
+                subtitle={`${new Date().getFullYear()}`}
+                icon={<TrophyIcon />}
+                color="#F9A825"
+                onClick={() => navigate('/graduation')}
+              />
+            </Grid>
+          </Grid>
+
+          {/* ── Row 3: Charts ── */}
+          <Grid container spacing={2} sx={{ mt: 0 }}>
             <Grid item xs={12} lg={8}>
               <Card>
                 <CardContent>
@@ -136,7 +220,7 @@ export function DashboardPage() {
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
                     {(data.students_by_status ?? []).map(item => (
                       <Chip key={item.status} label={`${STATUS_LABEL[item.status] ?? item.status}: ${item.total}`} size="small" />
                     ))}
@@ -144,6 +228,8 @@ export function DashboardPage() {
                 </CardContent>
               </Card>
             </Grid>
+
+            {/* ── Row 4: Expiring enrollments ── */}
             <Grid item xs={12}>
               <Card>
                 <CardContent>
@@ -153,7 +239,12 @@ export function DashboardPage() {
                   ) : (
                     <List dense>
                       {data.enrollments_expiring.map(item => (
-                        <ListItem key={`${item.student_id}-${item.end_date}`} divider>
+                        <ListItem
+                          key={`${item.student_id}-${item.end_date}`}
+                          divider
+                          sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
+                          onClick={() => navigate(`/students/${item.student_id}`)}
+                        >
                           <ListItemText
                             primary={item.student_name}
                             secondary={`${item.plan_name} vence em ${formatDate(item.end_date)}`}

@@ -192,6 +192,11 @@ export interface FinancialSummary {
   active_students: number
   inactive_students: number
   delinquent_students: number
+  active_instructors: number
+  active_class_groups: number
+  attendance_this_month: number
+  private_classes_this_month: number
+  graduations_this_year: number
 }
 
 export interface MonthlyRevenuePoint {
