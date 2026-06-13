@@ -49,6 +49,22 @@ class GraduationCreate(BaseSchema):
     notes: Optional[str] = None
 
 
+class GraduationEventUpdate(BaseSchema):
+    name: Optional[str] = None
+    event_date: Optional[date] = None
+    instructor_id: Optional[uuid.UUID] = None
+    notes: Optional[str] = None
+
+
+class GraduationUpdate(BaseSchema):
+    belt_id: Optional[uuid.UUID] = None
+    instructor_id: Optional[uuid.UUID] = None
+    result: Optional[str] = None
+    fee_paid: Optional[bool] = None
+    fee_amount: Optional[Decimal] = None
+    notes: Optional[str] = None
+
+
 class GraduationRead(BaseSchema):
     id: uuid.UUID
     student_id: uuid.UUID

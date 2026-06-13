@@ -36,6 +36,26 @@ export const graduationService = {
     return data
   },
 
+  async updateBelt(id: string, payload: object): Promise<BeltLevelRead> {
+    const { data } = await api.put<BeltLevelRead>(`/belts/${id}`, payload)
+    return data
+  },
+
+  async updateEvent(id: string, payload: object): Promise<GraduationEventRead> {
+    const { data } = await api.put<GraduationEventRead>(`/graduation-events/${id}`, payload)
+    return data
+  },
+
+  async getEventParticipants(eventId: string): Promise<GraduationRead[]> {
+    const { data } = await api.get<GraduationRead[]>(`/graduation-events/${eventId}/participants`)
+    return data
+  },
+
+  async updateGraduation(id: string, payload: object): Promise<GraduationRead> {
+    const { data } = await api.put<GraduationRead>(`/graduations/${id}`, payload)
+    return data
+  },
+
   async delete(id: string): Promise<void> {
     await api.delete(`/graduations/${id}`)
   },

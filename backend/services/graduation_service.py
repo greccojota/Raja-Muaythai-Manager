@@ -6,7 +6,8 @@ from repositories.graduation_repository import (
     BeltLevelRepository, GraduationEventRepository, GraduationRepository
 )
 from schemas.graduation import (
-    BeltLevelCreate, GraduationEventCreate, GraduationCreate
+    BeltLevelCreate, GraduationEventCreate, GraduationEventUpdate,
+    GraduationCreate, GraduationUpdate,
 )
 
 
@@ -53,6 +54,14 @@ class GraduationEventService:
         await self.session.commit()
         return (await self.repo.list_with_instructor())[-1]
 
+    async def update(self, event_id: uuid.UUID, data: GraduationEventUpdate) -> GraduationEvent:
+        event = await self.get(event_id)
+        for field, value in data.model_dump(exclude_none=True).items():
+            setattr(event, field, value)
+        await self.session.commit()
+        updated = await self.repo.get_by_id(event_id)
+        return updated or event
+
     async def delete(self, event_id: uuid.UUID) -> None:
         event = await self.get(event_id)
         await self.repo.delete(event)
@@ -72,6 +81,19 @@ class GraduationService:
 
     async def get_by_student(self, student_id: uuid.UUID) -> list[Graduation]:
         return await self.repo.list_by_student(student_id)
+
+    async def get_by_event(self, event_id: uuid.UUID) -> list[Graduation]:
+        return await self.repo.list_by_event(event_id)
+
+    async def update(self, graduation_id: uuid.UUID, data: GraduationUpdate) -> Graduation:
+        g = await self.repo.get_by_id(graduation_id)
+        if not g:
+            raise NotFoundError("Graduação")
+        for field, value in data.model_dump(exclude_none=True).items():
+            setattr(g, field, value)
+        await self.session.commit()
+        rows = await self.repo.list_by_student(g.student_id)
+        return next((r for r in rows if r.id == graduation_id), g)
 
     async def delete(self, graduation_id: uuid.UUID) -> None:
         g = await self.repo.get_by_id(graduation_id)

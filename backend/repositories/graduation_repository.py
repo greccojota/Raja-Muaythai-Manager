@@ -47,6 +47,20 @@ class GraduationRepository(BaseRepository[Graduation]):
     def __init__(self, session: AsyncSession):
         super().__init__(Graduation, session)
 
+    async def list_by_event(self, event_id: uuid.UUID) -> list[Graduation]:
+        result = await self.session.execute(
+            select(Graduation)
+            .options(
+                selectinload(Graduation.belt),
+                selectinload(Graduation.student),
+                selectinload(Graduation.instructor),
+                selectinload(Graduation.graduation_event),
+            )
+            .where(Graduation.graduation_event_id == event_id)
+            .order_by(Graduation.created_at.desc())
+        )
+        return list(result.scalars().all())
+
     async def list_by_student(self, student_id: uuid.UUID) -> list[Graduation]:
         result = await self.session.execute(
             select(Graduation)

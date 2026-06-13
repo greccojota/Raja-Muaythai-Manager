@@ -5,8 +5,8 @@ from api.deps import get_current_user, get_session
 from models.user import User
 from schemas.graduation import (
     BeltLevelCreate, BeltLevelRead,
-    GraduationEventCreate, GraduationEventRead,
-    GraduationCreate, GraduationRead,
+    GraduationEventCreate, GraduationEventRead, GraduationEventUpdate,
+    GraduationCreate, GraduationRead, GraduationUpdate,
 )
 from services.graduation_service import BeltService, GraduationEventService, GraduationService
 
@@ -73,6 +73,43 @@ async def create_graduation_event(
     )
 
 
+@router.put("/graduation-events/{event_id}", response_model=GraduationEventRead)
+async def update_graduation_event(
+    event_id: uuid.UUID,
+    data: GraduationEventUpdate,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    e = await GraduationEventService(session).update(event_id, data)
+    return GraduationEventRead(
+        id=e.id, name=e.name, event_date=e.event_date,
+        instructor=getattr(e, "instructor", None), notes=e.notes,
+        graduation_count=None,
+    )
+
+
+@router.get("/graduation-events/{event_id}/participants", response_model=list[GraduationRead])
+async def list_event_participants(
+    event_id: uuid.UUID,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    rows = await GraduationService(session).get_by_event(event_id)
+    return [
+        GraduationRead(
+            id=g.id, student_id=g.student_id,
+            student_name=g.student.name if g.student else None,
+            graduation_event_id=g.graduation_event_id,
+            event_name=g.graduation_event.name if g.graduation_event else None,
+            event_date=g.graduation_event.event_date if g.graduation_event else None,
+            belt=g.belt, instructor=g.instructor,
+            result=g.result, fee_paid=g.fee_paid,
+            fee_amount=g.fee_amount, notes=g.notes,
+        )
+        for g in rows
+    ]
+
+
 @router.delete("/graduation-events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_graduation_event(
     event_id: uuid.UUID,
@@ -113,6 +150,26 @@ async def register_graduation(
     session: AsyncSession = Depends(get_session),
 ):
     g = await GraduationService(session).register(data)
+    return GraduationRead(
+        id=g.id, student_id=g.student_id,
+        student_name=g.student.name if g.student else None,
+        graduation_event_id=g.graduation_event_id,
+        event_name=g.graduation_event.name if g.graduation_event else None,
+        event_date=g.graduation_event.event_date if g.graduation_event else None,
+        belt=g.belt, instructor=g.instructor,
+        result=g.result, fee_paid=g.fee_paid,
+        fee_amount=g.fee_amount, notes=g.notes,
+    )
+
+
+@router.put("/graduations/{graduation_id}", response_model=GraduationRead)
+async def update_graduation(
+    graduation_id: uuid.UUID,
+    data: GraduationUpdate,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    g = await GraduationService(session).update(graduation_id, data)
     return GraduationRead(
         id=g.id, student_id=g.student_id,
         student_name=g.student.name if g.student else None,
