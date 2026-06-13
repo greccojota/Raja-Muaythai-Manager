@@ -1,5 +1,6 @@
 import math
 import uuid
+from datetime import date, datetime, time, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,18 +36,43 @@ async def check_in(
     return _to_schema(record)
 
 
+@router.get("/frequency", response_model=list[AttendanceSummary])
+async def frequency_summary(
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    rows = await AttendanceService(session).get_frequency_summary()
+    return [AttendanceSummary(**r) for r in rows]
+
+
+@router.get("/{record_id}", response_model=AttendanceRead)
+async def get_attendance(
+    record_id: uuid.UUID,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    record = await AttendanceService(session).get_by_id(record_id)
+    return _to_schema(record)
+
+
 @router.get("", response_model=dict)
 async def list_attendance(
     class_group_id: Optional[uuid.UUID] = Query(None),
     student_id: Optional[uuid.UUID] = Query(None),
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     page: int = Query(1, ge=1),
     size: int = Query(50, ge=1, le=200),
     _: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
+    dt_from = datetime.combine(date_from, time.min).replace(tzinfo=timezone.utc) if date_from else None
+    dt_to = datetime.combine(date_to, time.max).replace(tzinfo=timezone.utc) if date_to else None
     rows, total = await AttendanceService(session).list_recent(
         class_group_id=class_group_id,
         student_id=student_id,
+        date_from=dt_from,
+        date_to=dt_to,
         page=page,
         size=size,
     )
@@ -64,12 +90,3 @@ async def delete_attendance(
     session: AsyncSession = Depends(get_session),
 ):
     await AttendanceService(session).delete(record_id)
-
-
-@router.get("/frequency", response_model=list[AttendanceSummary])
-async def frequency_summary(
-    _: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-):
-    rows = await AttendanceService(session).get_frequency_summary()
-    return [AttendanceSummary(**r) for r in rows]

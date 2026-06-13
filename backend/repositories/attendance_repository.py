@@ -12,10 +12,20 @@ class AttendanceRepository(BaseRepository[AttendanceRecord]):
     def __init__(self, session: AsyncSession):
         super().__init__(AttendanceRecord, session)
 
+    async def get_by_id(self, record_id: uuid.UUID):
+        result = await self.session.execute(
+            select(AttendanceRecord)
+            .options(selectinload(AttendanceRecord.student), selectinload(AttendanceRecord.class_group))
+            .where(AttendanceRecord.id == record_id)
+        )
+        return result.scalar_one_or_none()
+
     async def list_recent(
         self,
         class_group_id: uuid.UUID | None = None,
         student_id: uuid.UUID | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
         skip: int = 0,
         limit: int = 50,
     ) -> tuple[list[AttendanceRecord], int]:
@@ -30,6 +40,12 @@ class AttendanceRepository(BaseRepository[AttendanceRecord]):
         if student_id:
             q = q.where(AttendanceRecord.student_id == student_id)
             cq = cq.where(AttendanceRecord.student_id == student_id)
+        if date_from:
+            q = q.where(AttendanceRecord.check_in_at >= date_from)
+            cq = cq.where(AttendanceRecord.check_in_at >= date_from)
+        if date_to:
+            q = q.where(AttendanceRecord.check_in_at <= date_to)
+            cq = cq.where(AttendanceRecord.check_in_at <= date_to)
         total = (await self.session.execute(cq)).scalar_one()
         rows = (await self.session.execute(
             q.order_by(AttendanceRecord.check_in_at.desc()).offset(skip).limit(limit)

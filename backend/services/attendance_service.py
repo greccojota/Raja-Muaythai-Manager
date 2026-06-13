@@ -31,11 +31,19 @@ class AttendanceService:
         rows, _ = await self.repo.list_recent(student_id=data.student_id, limit=1)
         return rows[0] if rows else record
 
-    async def list_recent(self, class_group_id=None, student_id=None, page=1, size=50):
+    async def get_by_id(self, record_id: uuid.UUID) -> AttendanceRecord:
+        record = await self.repo.get_by_id(record_id)
+        if not record:
+            raise NotFoundError("Registro de presença")
+        return record
+
+    async def list_recent(self, class_group_id=None, student_id=None, date_from=None, date_to=None, page=1, size=50):
         skip = (page - 1) * size
         return await self.repo.list_recent(
             class_group_id=class_group_id,
             student_id=student_id,
+            date_from=date_from,
+            date_to=date_to,
             skip=skip,
             limit=size,
         )
