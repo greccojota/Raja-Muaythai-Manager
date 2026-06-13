@@ -102,6 +102,11 @@ class ClassGroupService:
     async def list_students(self, group_id: uuid.UUID):
         return await ClassEnrollmentRepository(self.session).list_by_group(group_id)
 
+    async def deactivate(self, group_id: uuid.UUID) -> None:
+        group = await self.get(group_id)
+        group.is_active = False
+        await self.session.commit()
+
 
 class PrivateClassService:
     def __init__(self, session: AsyncSession):
@@ -132,3 +137,10 @@ class PrivateClassService:
         await self.session.commit()
         rows, _ = await self.repo.list_paginated(student_id=private_class.student_id, limit=1)
         return rows[0] if rows else private_class
+
+    async def cancel(self, pc_id: uuid.UUID) -> None:
+        private_class = await self.repo.get_by_id(pc_id)
+        if not private_class:
+            raise NotFoundError("Aula particular")
+        private_class.status = "cancelled"
+        await self.session.commit()

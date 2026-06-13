@@ -119,6 +119,15 @@ async def enroll_in_class(
     )
 
 
+@router.delete("/classes/{class_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_class(
+    class_id: uuid.UUID,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    await ClassGroupService(session).deactivate(class_id)
+
+
 @router.delete("/class-enrollments/{enrollment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def unenroll_from_class(
     enrollment_id: uuid.UUID,
@@ -174,6 +183,15 @@ async def create_private_class(
         duration_minutes=r.duration_minutes, value=r.value,
         status=r.status, notes=r.notes,
     )
+
+
+@router.delete("/private-classes/{pc_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_private_class(
+    pc_id: uuid.UUID,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    await PrivateClassService(session).cancel(pc_id)
 
 
 @router.put("/private-classes/{pc_id}", response_model=PrivateClassRead)

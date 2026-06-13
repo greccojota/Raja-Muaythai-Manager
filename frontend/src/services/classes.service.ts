@@ -48,4 +48,12 @@ export const classesService = {
     const { data } = await api.put<PrivateClassRead>(`/private-classes/${id}`, payload)
     return data
   },
+
+  async deleteGroup(id: string): Promise<void> {
+    await api.delete(`/classes/${id}`)
+  },
+
+  async cancelPrivateClass(id: string): Promise<void> {
+    await api.delete(`/private-classes/${id}`)
+  },
 }
