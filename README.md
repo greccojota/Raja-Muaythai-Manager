@@ -52,9 +52,9 @@ docker exec raja-backend pytest tests/ -v
 | Financeiro | Fase 1 | ✅ Completo | CRUD completo de AR (listagem paginada com filtros, detalhe, cancelamento), registro de pagamento, inadimplentes, KPIs de summary |
 | Instrutores | Fase 2 | ✅ Completo | CRUD completo, filtro active_only, página dedicada com busca e edição |
 | Aulas | Fase 2 | ✅ Completo | CRUD de turmas com desativação, vínculo de alunos; aba de aulas particulares (agendar/editar/cancelar) |
-| Presença | Fase 2 | 🔄 Parcial | Check-in, listagem, frequência, remoção; sem update/get-by-id e sem filtros avançados |
-| Graduação | Fase 2 | 🔄 Parcial | Faixas, eventos e graduações com create/list/delete; sem edição e sem tela de participantes |
-| Dashboard | Fase 4 | 🔄 Parcial | KPIs financeiros, gráfico de receita, planos vencendo; sem métricas de aulas/presença/graduação |
+| Presença | Fase 2 | ✅ Completo | Check-in, listagem, remoção, GET por ID; filtros por aluno/turma/data; frequência por aluno |
+| Graduação | Fase 2 | ✅ Completo | Faixas/eventos/graduações com CRUD completo; dialog de participantes por evento |
+| Dashboard | Fase 4 | ✅ Completo | KPIs financeiros + operacionais (turmas, presenças, instrutores, graduações), gráfico de receita |
 | Eventos & Chaveamento | Fase 3 | 🔜 Não iniciado | — |
 
 ## Arquitetura
@@ -88,6 +88,11 @@ Raja Muaythai Manager/
 - **LGPD:** dados pessoais expostos apenas no escopo necessário; soft-delete preserva histórico
 
 ## Changelog
+
+### 2026-06-13 (continuação 2)
+- **feat(presenca):** GET /attendance/{id}, filtros date_from/date_to, UI com filtros por aluno/turma/data
+- **feat(graduacao):** PUT /graduation-events/{id}, GET .../participants, PUT /graduations/{id}; dialog de participantes com registrar/editar/deletar
+- **feat(dashboard):** 5 novos KPIs — active_instructors, active_class_groups, attendance_this_month, private_classes_this_month, graduations_this_year; cards clicaveis
 
 ### 2026-06-13 (continuação)
 - **feat(aulas):** módulo completo — DELETE /classes/{id} (desativa), DELETE /private-classes/{id} (cancela), aba de aulas particulares com tabela paginada, filtro, agendar/editar/cancelar
