@@ -51,7 +51,7 @@ docker exec raja-backend pytest tests/ -v
 | Matrículas | Fase 1 | ✅ Completo | CRUD completo, listagem global, get/update por ID, student_name na resposta |
 | Financeiro | Fase 1 | ✅ Completo | CRUD completo de AR (listagem paginada com filtros, detalhe, cancelamento), registro de pagamento, inadimplentes, KPIs de summary |
 | Instrutores | Fase 2 | ✅ Completo | CRUD completo, filtro active_only, página dedicada com busca e edição |
-| Aulas | Fase 2 | 🔄 Parcial | CRUD de turmas e horários, vínculo de alunos; sem tela de aulas privadas e sem delete de turma |
+| Aulas | Fase 2 | ✅ Completo | CRUD de turmas com desativação, vínculo de alunos; aba de aulas particulares (agendar/editar/cancelar) |
 | Presença | Fase 2 | 🔄 Parcial | Check-in, listagem, frequência, remoção; sem update/get-by-id e sem filtros avançados |
 | Graduação | Fase 2 | 🔄 Parcial | Faixas, eventos e graduações com create/list/delete; sem edição e sem tela de participantes |
 | Dashboard | Fase 4 | 🔄 Parcial | KPIs financeiros, gráfico de receita, planos vencendo; sem métricas de aulas/presença/graduação |
@@ -88,6 +88,9 @@ Raja Muaythai Manager/
 - **LGPD:** dados pessoais expostos apenas no escopo necessário; soft-delete preserva histórico
 
 ## Changelog
+
+### 2026-06-13 (continuação)
+- **feat(aulas):** módulo completo — DELETE /classes/{id} (desativa), DELETE /private-classes/{id} (cancela), aba de aulas particulares com tabela paginada, filtro, agendar/editar/cancelar
 
 ### 2026-06-13
 - **feat(financeiro):** módulo completo — router dedicado `/financial/accounts-receivable` com filtros (status/mes/vencimento), cancelamento de AR, endpoint `/financial/summary` com KPIs; frontend reescrito com tabs de status, filtros de data, dialogo de cancelamento
